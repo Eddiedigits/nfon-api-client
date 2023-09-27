@@ -164,7 +164,6 @@ class NfonApiClient():
         except RequestException as error:
             print(f"Error fetching data from the API: {error}")
 
-        
         # # using a simple request
         # try:
         #     if data:
@@ -196,7 +195,7 @@ class NfonApiClient():
     def delete(self, endpoint):
         return self._make_request('DELETE', endpoint)
 
-# Example usage:
+# Example interpreter usage:
 # file = open('nfon_api_client.py')
 # exec(file.read())
 if __name__ == "__main__":
