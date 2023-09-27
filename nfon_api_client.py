@@ -6,8 +6,9 @@ import hmac
 import base64
 import datetime
 from configparser import ConfigParser
-from requests import request
+from requests import request, Session, Request
 from requests.exceptions import RequestException
+from requests.adapters import HTTPAdapter
 
 class NfonApiClient():
     '''base nfon service portal api client with auth and simple api call functions'''
@@ -18,6 +19,11 @@ class NfonApiClient():
         self.base_url = api_base_url
         self._auth_debug = False
         self.timeout = 10
+        self.session = Session()
+        # retries = Retry(total=5, backoff_factor=1, status_forcelist=[ 502, 503, 504 ])
+        adapter = HTTPAdapter(max_retries=3)
+        self.session.mount(self.base_url, adapter)
+
 
     # #### Auth request_types #### #
     def _get_utc(self):
@@ -139,23 +145,44 @@ class NfonApiClient():
             endpoint,
             data,
             content_type)
+        
+        # using a session to add retry functionality
         try:
             if data:
                 data = json.dumps(data).encode('utf-8')
             url = self.base_url + endpoint
             if self._auth_debug: print(url)
-            req = request(
+            req = Request(
                 request_type,
                 url,
-                data = data,
-                headers = headers,
-                timeout = timeout,
-            )
-            # response.raise_for_status()  # Raise an exception for HTTP errors
-            # return response.json()  # Assuming the API returns JSON data
-            return req
+                headers=headers,
+                data = data)
+            prepped = req.prepare()
+            resp = self.session.send(prepped, timeout = timeout)
+            resp.raise_for_status()
+            return resp
         except RequestException as error:
             print(f"Error fetching data from the API: {error}")
+
+        
+        # # using a simple request
+        # try:
+        #     if data:
+        #         data = json.dumps(data).encode('utf-8')
+        #     url = self.base_url + endpoint
+        #     if self._auth_debug: print(url)
+        #     req = request(
+        #         request_type,
+        #         url,
+        #         data = data,
+        #         headers = headers,
+        #         timeout = timeout,
+        #     )
+        #     # response.raise_for_status()  # Raise an exception for HTTP errors
+        #     # return response.json()  # Assuming the API returns JSON data
+        #     return req
+        # except RequestException as error:
+        #     print(f"Error fetching data from the API: {error}")
 
     def get(self, endpoint):
         return self._make_request('GET', endpoint)
