@@ -10,13 +10,14 @@ from requests import request
 from requests.exceptions import RequestException
 
 class NfonApiClient():
-    '''TODO'''
+    '''base nfon service portal api client with auth and simple api call functions'''
     def __init__(self, uid, api_key, api_secret, api_base_url):
         self.user_id = uid.upper()
         self.key = api_key
         self.secret = api_secret
         self.base_url = api_base_url
-        self.debug = False
+        self._auth_debug = False
+        self.timeout = 10
 
     # #### Auth request_types #### #
     def _get_utc(self):
@@ -53,7 +54,7 @@ class NfonApiClient():
             content_type + "\n" +\
             date + "\n" +\
             endpoint
-        if self.debug: print(string_to_sign)
+        if self._auth_debug: print(string_to_sign)
     
         # sign the string, creating the signature #
         try:
@@ -97,25 +98,25 @@ class NfonApiClient():
         '''
         try:
             date = self._get_utc()
-            if self.debug: print(date)
+            if self._auth_debug: print(date)
             content_md5 = self._content_md5(data)
-            if self.debug: print(content_md5)
+            if self._auth_debug: print(content_md5)
             auth_base_header = self._auth_header(
                 request_type,
                 endpoint,
                 date,
                 content_md5,
                 content_type)
-            if self.debug: print(auth_base_header)
+            if self._auth_debug: print(auth_base_header)
             host = self.base_url.replace('https://', '')
-            if self.debug: print(host)
+            if self._auth_debug: print(host)
             headers = self._http_headers(
                     auth_base_header,
                     date,
                     host,
                     content_md5,
                     content_type)
-            if self.debug: print(headers)
+            if self._auth_debug: print(headers)
             return headers
         except:
             print('Error with request preparation')
@@ -127,8 +128,11 @@ class NfonApiClient():
             request_type,
             endpoint,
             data='',
-            timeout=10,
+            timeout=None,
             content_type='application/json'):
+
+        if not timeout:
+            timeout = self.timeout
 
         headers = self._prep_headers(
             request_type,
@@ -139,7 +143,7 @@ class NfonApiClient():
             if data:
                 data = json.dumps(data).encode('utf-8')
             url = self.base_url + endpoint
-            if self.debug: print(url)
+            if self._auth_debug: print(url)
             req = request(
                 request_type,
                 url,
@@ -150,8 +154,8 @@ class NfonApiClient():
             # response.raise_for_status()  # Raise an exception for HTTP errors
             # return response.json()  # Assuming the API returns JSON data
             return req
-        except RequestException as e:
-            print(f"Error fetching data from the API: {e}")
+        except RequestException as error:
+            print(f"Error fetching data from the API: {error}")
 
     def get(self, endpoint):
         return self._make_request('GET', endpoint)
