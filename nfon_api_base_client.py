@@ -6,11 +6,11 @@ import hmac
 import base64
 import datetime
 from configparser import ConfigParser
-from requests import request, Session, Request
+from requests import Session, Request
 from requests.exceptions import RequestException
 from requests.adapters import HTTPAdapter
 
-class NfonApiClient():
+class NfonApiBaseClient():
     '''base nfon service portal api client with auth and simple api call functions'''
     def __init__(self, uid, api_key, api_secret, api_base_url):
         self.user_id = uid.upper()
@@ -197,7 +197,7 @@ class NfonApiClient():
         return self._make_request('DELETE', endpoint)
 
 # Example usage:
-# file = open('nfon_api_client.py')
+# file = open('nfon_api_base_client.py')
 # exec(file.read())
 if __name__ == "__main__":
     from pprint import PrettyPrinter
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     secret = config['API']['secret']
 
 
-    napi = NfonApiClient(user_id, key, secret, base_url)
+    napi = NfonApiBaseClient(user_id, key, secret, base_url)
     # napi.debug = True
     def api_test():
         '''simple get request to confirm that
