@@ -163,6 +163,7 @@ class NfonApiBaseClient():
             return resp
         except RequestException as error:
             print(f"Error fetching data from the API: {error}")
+            return error
 
         
         # # using a simple request
