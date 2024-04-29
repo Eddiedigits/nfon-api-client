@@ -6,11 +6,11 @@ import hmac
 import base64
 import datetime
 from configparser import ConfigParser
-from requests import request, Session, Request
+from requests import Session, Request
 from requests.exceptions import RequestException
 from requests.adapters import HTTPAdapter
 
-class NfonApiClient():
+class NfonApiBaseClient():
     '''base nfon service portal api client with auth and simple api call functions'''
     def __init__(self, uid, api_key, api_secret, api_base_url):
         self.user_id = uid.upper()
@@ -28,8 +28,7 @@ class NfonApiClient():
     # #### Auth request_types #### #
     def _get_utc(self):
         '''returns utc time as string formatted for use in the request http headers'''
-        # return datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
-        return datetime.datetime.now(datetime.UTC).strftime('%a, %d %b %Y %H:%M:%S GMT')
+        return datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
 
     def _content_md5(self, data=''):
         if data:
@@ -164,7 +163,9 @@ class NfonApiClient():
             return resp
         except RequestException as error:
             print(f"Error fetching data from the API: {error}")
+            return error
 
+        
         # # using a simple request
         # try:
         #     if data:
@@ -196,22 +197,21 @@ class NfonApiClient():
     def delete(self, endpoint):
         return self._make_request('DELETE', endpoint)
 
-# Example interpreter usage:
-# file = open('nfon_api_client.py')
+# Example usage:
+# file = open('nfon_api_base_client.py')
 # exec(file.read())
 if __name__ == "__main__":
     from pprint import PrettyPrinter
     pp = PrettyPrinter()
     config = ConfigParser()
     config.read('config.ini')
-    base_url = "https://portal-api.nfon.net:8090"
-    # base_url = config['API']['base_url']
+    base_url = config['API']['base_url']
     user_id = config['API']['user_id']
     key = config['API']['key']
     secret = config['API']['secret']
 
 
-    napi = NfonApiClient(user_id, key, secret, base_url)
+    napi = NfonApiBaseClient(user_id, key, secret, base_url)
     # napi.debug = True
     def api_test():
         '''simple get request to confirm that
@@ -224,5 +224,3 @@ if __name__ == "__main__":
             ep = f'/api/customers/{identifier}'
         r = napi.get(ep)
         pp.pprint(r.json())
-    # run test
-    api_test()
