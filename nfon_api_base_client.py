@@ -148,15 +148,15 @@ class NfonApiBaseClient():
         
         # using a session to add retry functionality
         try:
-            # if data:
-            #     data = json.dumps(data).encode('utf-8')
+            if data:
+                data = json.dumps(data).encode('utf-8')
             url = self.base_url + endpoint
             if self._auth_debug: print(url)
             req = Request(
                 request_type,
                 url,
                 headers=headers,
-                json = data)
+                data = data)
             prepped = req.prepare()
             resp = self.session.send(prepped, timeout = timeout)
             resp.raise_for_status()
