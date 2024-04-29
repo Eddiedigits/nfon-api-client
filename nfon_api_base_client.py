@@ -28,7 +28,7 @@ class NfonApiBaseClient():
     # #### Auth request_types #### #
     def _get_utc(self):
         '''returns utc time as string formatted for use in the request http headers'''
-        return datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+        return datetime.datetime.now(datetime.UTC).strftime('%a, %d %b %Y %H:%M:%S GMT')
 
     def _content_md5(self, data=''):
         if data:
@@ -224,3 +224,5 @@ if __name__ == "__main__":
             ep = f'/api/customers/{identifier}'
         r = napi.get(ep)
         pp.pprint(r.json())
+    # do test
+    api_test()
