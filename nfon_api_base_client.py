@@ -6,9 +6,16 @@ import hmac
 import base64
 import datetime
 from configparser import ConfigParser
+from string import Formatter
+
 from requests import Session, Request
 from requests.exceptions import RequestException
 from requests.adapters import HTTPAdapter
+from tenacity import retry, stop_after_attempt
+
+from .endpoints import api_endpoints, version
+
+api_retry = retry(stop=stop_after_attempt(3))
 
 class NfonApiBaseClient():
     '''base nfon service portal api client with auth and simple api call functions'''
@@ -23,6 +30,8 @@ class NfonApiBaseClient():
         # retries = Retry(total=5, backoff_factor=1, status_forcelist=[ 502, 503, 504 ])
         adapter = HTTPAdapter(max_retries=3)
         self.session.mount(self.base_url, adapter)
+        self.api_endpoints = api_endpoints
+        self.ep_version = version
 
 
     # #### Auth request_types #### #
@@ -129,8 +138,8 @@ class NfonApiBaseClient():
             raise
 
     # #### END Auth methods #### #
-
-    def _make_request(self,
+    @api_retry
+    def _execute_request(self,
             request_type,
             endpoint,
             data='',
@@ -186,16 +195,42 @@ class NfonApiBaseClient():
         #     print(f"Error fetching data from the API: {error}")
 
     def get(self, endpoint):
-        return self._make_request('GET', endpoint)
+        return self._execute_request('GET', endpoint)
 
     def post(self, endpoint, data=None):
-        return self._make_request('POST', endpoint, data=data)
+        return self._execute_request('POST', endpoint, data=data)
 
     def put(self, endpoint, data=None):
-        return self._make_request('PUT', endpoint, data=data)
+        return self._execute_request('PUT', endpoint, data=data)
 
     def delete(self, endpoint):
-        return self._make_request('DELETE', endpoint)
+        return self._execute_request('DELETE', endpoint)
+    
+    def ep_vars(self, key):
+        '''returns the variables in the endpoint'''
+        return [fn for _, fn, _, _ in Formatter().parse(self.api_endpoints[key])]
+    
+    def ep(self, key, **kwargs):
+        '''returns the endpoint with the variables formatted, if any.
+        if there are missing variables the returned error message
+        includes all required variables for the endpoint'''
+        try:
+            endpoint = self.api_endpoints[key]
+            try:
+                return endpoint.format(**kwargs)
+            except KeyError as error:
+                f_vars = self.ep_vars(key)
+                raise KeyError(f"Missing variable: {error.args[0]}."
+                               f"Required variables: {f_vars}."
+                                f"Endpoint: {endpoint}") from error
+        except KeyError as error:
+            raise KeyError(f"Endpoint not found: {key}") from error
+        
+    def api_test(self):
+        r = self.get(self.ep('version'))
+        r.raise_for_status()
+        print('The Endpoints are up-to-date: ', r.json()['data'][0]['value'] == self.ep_version)
+        return r
 
 # Example usage:
 # file = open('nfon_api_base_client.py')
