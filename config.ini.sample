@@ -1,5 +1,5 @@
 [API]
 base_url = https://portal-api.nfon.net:8090
-user_id =
-key = 
-secret = 
+user_id = SXXXX or KXXXX
+key = [api key]
+secret = [api secret]
