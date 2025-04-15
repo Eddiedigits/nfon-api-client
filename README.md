@@ -7,7 +7,7 @@ DE:
 Der Code soll helfen, die Schwierigkeiten mit der Authentifizierung zu überwinden.
 
 Link to General Information from NFON
-https://www.nfon.com/en/service/documentation/manuals/serviceportalapi
+https://www.nfon.com/en/service/documentation/manuals/web-applications/nfon-service-portal-api/nfon-service-portal-api-manual/
 
 Example Usage:
 
