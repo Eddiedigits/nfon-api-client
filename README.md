@@ -10,7 +10,17 @@ https://www.nfon.com/en/service/documentation/manuals/web-applications/nfon-serv
 
 ## Installation
 
-Clone this repository or install as part of your project.
+```bash
+pip install nfon-api-client
+```
+
+Or, if you prefer
+```bash
+git clone https://github.com/yourusername/nfon-api-client.git
+cd nfon-api-client
+pip install .
+```
+
 
 ## Example Usage
 
