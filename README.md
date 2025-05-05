@@ -15,7 +15,7 @@ Clone this repository or install as part of your project.
 ## Example Usage
 
 ```python
-from yourpackage import NfonApiBaseClient  # Adjust 'yourpackage' to match your actual package/module name
+from nfon_api_client import NfonApiBaseClient
 
 napi = NfonApiBaseClient(
     uid="KXXXX",
@@ -66,8 +66,8 @@ This library defines custom exceptions to help you handle different failure mode
 ### Example:
 
 ```python
-from yourpackage import NfonApiBaseClient
-from yourpackage.exceptions import RequestFailed, AuthHeaderError
+from nfon_api_client import NfonApiBaseClient
+from nfon_api_client.exceptions import RequestFailed, AuthHeaderError
 
 napi = NfonApiBaseClient("KXXXX", "your_key", "your_secret", "https://nfon.example.com")
 
