@@ -29,7 +29,7 @@ endpoint = napi.ep('customers')
 response = napi.get(endpoint)
 
 # Use a customer-specific endpoint
-customer_id = "K123456"
+customer_id = "K1234"
 endpoint = napi.ep('customer_basic_data', customer_id=customer_id)
 response = napi.get(endpoint)
 print(response.json())
