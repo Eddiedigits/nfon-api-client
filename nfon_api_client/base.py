@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 from requests import Session, Request
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
-from tenacity import retry, stop_after_attempt
+from tenacity import retry, stop_after_attempt, retry_if_exception
 
 from .exceptions import (
     NFONApiError,
@@ -20,15 +20,27 @@ from .exceptions import (
     RequestFailed,
     )
 from .endpoints import api_endpoints, version
+from .exceptions import NFONApiError, AuthHeaderError, EndpointFormatError, RequestFailed
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
 
-# Retry config shared across requests
-api_retry = retry(stop=stop_after_attempt(3))
+def is_retryable_exception(exc):
+    """Return True if the exception should trigger a retry."""
+    from requests.exceptions import HTTPError
 
+    if isinstance(exc, RequestFailed):
+        cause = exc.__cause__
+        if isinstance(cause, HTTPError):
+            # Don't retry on 401/403
+            if cause.response is not None and cause.response.status_code in {401, 403}:
+                return False
+    return True  # retry for everything else
 
-from .exceptions import NFONApiError, AuthHeaderError, EndpointFormatError, RequestFailed
+api_retry = retry(
+    stop=stop_after_attempt(3),
+    retry=retry_if_exception(is_retryable_exception)
+)
 
 class NfonApiBaseClient:
     """
@@ -233,9 +245,9 @@ class NfonApiBaseClient:
             else:
                 logger.warning("Could not determine API version from response.")
 
-            return current_version
-
         except Exception as e:
             logger.warning(f"API connection failed or unexpected response: {e}")
-            return None
+        
+        finally:
+            return response
 
