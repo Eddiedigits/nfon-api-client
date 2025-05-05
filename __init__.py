@@ -1,1 +1,1 @@
-from .nfon_api_base_client import NfonApiBaseClient
+from .base import NfonApiBaseClient
